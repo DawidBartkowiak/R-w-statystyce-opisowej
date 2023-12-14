@@ -1,0 +1,233 @@
+Imię: [Dawid]
+Nazwisko: [Bartkowiak]
+Numer albumu: [29599]
+github:[https://github.com/DawidBartkowiak/R-w-statystyce-opisowej]
+# --------------------------------------------------------
+# Zadanie.12 
+#
+# W R dostępne są zbiory WWWusage, presidents oraz mdeaths. Wczytaj je i dokonaj eksploracji danych.
+# Sprawdź czy są to zbiory typu "time series". Opisz jakich okresów dotyczą dane oraz jakim okresom 
+# czasu odpowiadają poszczególne obserwacje. Sporządź również wykresy liniowe obrazujące te szeregi czasowe.
+#
+# Pełne rozwiązanie tego zadania musi zawierać dla każdego zbioru: 
+#	- Twój kod R, 
+#	- Twój opis i interprację szeregów czasowych,
+#   - czytelną wizualizację na wykresach. 
+#
+# --------------------------------------------------------
+# tu wpisz swój kod: 
+library(datasets)
+library(ggplot2)
+data("WWWusage")
+data("presidents")
+deaths<-datasets::mdeaths
+# Eksploracja danych dla zbioru WWWusage
+str(WWWusage)
+summary(WWWusage)
+is.na(WWWusage)
+head(WWWusage)
+View(WWWusage)
+plot(WWWusage,type="o",col="red",xlab="Minuta",ylab="Liczba odwiedzających użytkowników",main="Liczba użytkowników na każdą minutę")
+cat("Obserwacje przedstawiają liczbę użytkowników na daną minutę w okresie od 0 do 100 minut")
+# Eksploracja danych dla zbioru presidents
+str(presidents)
+head(presidents)
+is.na(presidents)
+summary(presidents)
+View(presidents)
+?presidents
+plot(presidents,type="o",col="blue",xlab="Lata",ylab="Poparcie w %",main="Prezydenci")
+cat("Obserwacje przedstawiają procentowe poparcie dla danych prezydentów w latach 1945-1975.")
+# Eksploracja danych dla zbioru mdeaths
+str(mdeaths)
+summary(mdeaths)
+head(mdeaths)
+is.na(mdeaths)
+View(mdeaths)
+plot(mdeaths,type="o",col="black",xlab="Lata",ylab="Ilość śmierci",main="Ilość śmierci w ciągu każdego miesiąca")
+cat("Obserwacje przedstawiają ilość śmierci w danym miesiącu w latach 1974-1980.")
+
+# --------------------------------------------------------
+# Zadanie.13
+#
+# Dostępny jest zbiór danych prezentujących liczbę małżeństw (v1). Prezentuje on dane za okres od stycznia
+# 2009 do grudnia 2011. Dokonaj jego dekompozycji. Wybierz właściwy typ modelu wahań w czasie. Wykreśl
+# wyniki. Odpowiedz na pytania:
+#
+# W których miesiącach jest najwyższy dodatni poziom wahań sezonowych, 
+# a w których jest najniższy? Uzasadnij odpowiedź i zinterpretuj wyniki.
+#  
+# O ile procent w każdym miesiącu wskaźniki sezonowości odchylają się od średniej dla danego miesiąca?
+#
+# --------------------------------------------------------
+# tu wpisz swój kod: 
+
+v1 <-  c(10.8, 12.9, 4.7, 28.1, 6.1, 23.1, 20.2, 23.7, 30.4, 24.6, 7.7, 14.8,
+         10.2, 10.9, 4.9, 27.3, 6.0, 27.6, 16.7, 28.3, 26.7, 24.8, 8.2, 12.9,
+         9.8,  7.9, 8.1, 25.7, 6.3, 25.2, 18.8, 29.6, 26.2, 26.1, 8.3, 12.9)
+ts.v1<-ts(v1,start = c(01.2009),frequency = 12)
+dekompozycja<-decompose(ts.v1,type = "multiplicative")
+?decompose
+plot(dekompozycja$seasonal,main="sezonowość",ylab="Wachania sezonowe")
+plot(dekompozycja$trend,main="trend",ylab="Trend")
+plot(dekompozycja$random,main="Składnik losowy",ylab="Składnik losowy")
+max<-which.max(dekompozycja$seasonal)
+min<-which.min(dekompozycja$seasonal)
+cat("Najwyższy dodatni poziom wahań sezonowych występuje w miesiącu:", month.abb[max], "\n")
+cat("Najniższy dodatni poziom wahań sezonowych występuje w miesiącu:", month.abb[min], "\n")
+procenty <-(dekompozycja$seasonal - mean(dekompozycja$seasonal)) / mean(dekompozycja$seasonal) * 100
+cat("Procentowe odchylenie od średniej dla każdego miesiąca:\n")
+print(procenty)
+# --------------------------------------------------------
+# Zadanie.14
+#
+# W pakiecie ISLR dostępny jest zbiór "Auto "z informacją o różnych modelach samochodów.
+# Zapoznaj się ze znaczeniem zmiennych zbioru. Dokonaj eksploracji zbioru za pomocą
+# poznanych funkcji (np. head, summary, itd.).
+#
+# Utwórz model1 regresji liniowej ze zmienną mpg jako objaśnianą a horsepower jako objaśniającą.
+# Zastanów się co zawierają zmienne i czy istnieje związek przyczynowo-skutkowy. 
+# Zinterpretuj zmienne i uzasadnij związek.
+# 
+# Dokonaj analizy parametrów modelu za pomocą funkcji summary(). Na podstawie je wyników odpowiedz 
+# na następujace pytania:
+# a) Czy istnieje związek pomiędzy zmienną objaśniającą a objaśnianą?
+# b) Jak można interpretować wartość współczynnika regresji?
+# c) Jaką liczbę mil per galon paliwa model przewiduje dla 98 koni mechanicznych? 
+# {wskazówka: użyj funkcji predict z argumentem interval="conficence"
+# d) utwórz wykres rozrzutu dla tych dwóch zmiennych; dodaj linię regresji za pomocą funkcji "abline"
+## e) użyj funkcji "plot", żeby obejrzeć wykresy diagnostyczne
+# Spróbuj stworzyć model dla większej liczby zmiennych. 
+# Najpierw stwórz macierz korelacji dla zmiennych numerycznych używająch funkcji cor(). 
+# (pamiętaj, że w argumencie funkcji cor powinny być dane bez zmiennych kategorycznych)
+# f) które zmienne numeryczne są silnie skorelowane ze zmienną objaśnianą?
+#
+# Stwórz teraz model2 oparty na wszystkich zmiennych.
+# g) Które zmienne są powiązane ze zmienną objaśnianą (mpg) w statystycznie istotnym stopniu?
+# h) Jak można interpretować współczynnik przy zmiennej "year"?
+#
+# Porównaj modele ze względu na wartość R kwadrat 
+# i stwórz wykresy diagnostyczne dla obu modeli.
+
+?Auto
+
+#
+# --------------------------------------------------------
+# tu wpisz swój kod: 
+install.packages("ISLR")
+library(ISLR)
+data("Auto")
+#Eksporacja danych
+summary(Auto)
+head(Auto)
+View(Auto)
+str(Auto)
+#Model regresji liniowej
+model1<-lm(mpg ~ horsepower, data = Auto)
+cat("Zwiększając horsepower zmniejsza się wartość mpg.")
+summary(model1)
+# a) Czy istnieje związek pomiędzy zmienną objaśniającą a objaśnianą?
+cat("Tak, wartość p-value jest mniejsza niż 0.05 jednostki.")
+# b) Jak można interpretować wartość współczynnika regresji?
+cor(Auto$mpg,Auto$horsepower)
+cat("Wzrost horsepower powoduje zmniejszenie wartości mpg. ")
+# c) Jaką liczbę mil per galon paliwa model przewiduje dla 98 koni mechanicznych? 
+# {wskazówka: użyj funkcji predict z argumentem interval="conficence"
+?predict
+pre<-predict(model1,interval="confidence",newdata = data.frame(horsepower = 98))
+cat("Przewidziana liczba mil per galon dla 98 koni mechanicznych:", pre, "\n")
+# d) utwórz wykres rozrzutu dla tych dwóch zmiennych; dodaj linię regresji za pomocą funkcji "abline"
+plot(Auto$horsepower, Auto$mpg, main = "Wykres rozrzutu mpg od horsepower", xlab = "Horsepower", ylab = "MPG")+
+abline(model1, col = "red")
+# e) użyj funkcji "plot", żeby obejrzeć wykresy diagnostyczne
+plot(model1)
+# f) które zmienne numeryczne są silnie skorelowane ze zmienną objaśnianą?
+korelacja <- cor(Auto[, sapply(Auto, is.numeric)])
+print("Macierz korelacji:")
+print(korelacja)
+korelacjazmpg<-abs(korelacja[,"mpg"])
+odcięcie<-0.7
+silna_korelacja<-names(korelacjazmpg[korelacjazmpg>odcięcie])
+cat("Zmienne numeryczne silnie skorelowane ze zmienną objaśnianą (mpg):\n")
+print(silna_korelacja)
+# Stwórz teraz model2 oparty na wszystkich zmiennych.
+# g) Które zmienne są powiązane ze zmienną objaśnianą (mpg) w statystycznie istotnym stopniu?
+model2<-lm(mpg~ . ,data = Auto)
+sum<-summary(model2)
+p<-sum$coefficients[,"Pr(>|t|)"]
+poziom_istotności<-0.05
+zmienne_istotne<-names(p[p<poziom_istotności])
+cat("Zmienne istotne statystycznie ze zmienną objaśnianą (mpg):\n")
+print(zmienne_istotne)
+# h) Jak można interpretować współczynnik przy zmiennej "year"?
+cat("Współczynnik przy zmiennej year odpowiada za rok produkcji pojazdów. ")
+# Porównaj modele ze względu na wartość R kwadrat 
+# i stwórz wykresy diagnostyczne dla obu modeli.
+cat("R-squared dla modelu1:", summary(model1)$r.squared, "\n")
+cat("R-squared dla modelu2:", summary(model2)$r.squared, "\n")
+plot(model1)
+plot(model2)
+# --------------------------------------------------------
+# Zadanie.15
+#
+# Wygeneruj 1000-elementowy wektor z rozkładu Poisonna z parametrem lambda=6. Policz dla tego wektora:
+# - średnią, 
+# - rozstęp, 
+# - wariancję, 
+# - kwartyle, 
+# - rozstęp międzykwartylowy, 
+# - kurtozę, 
+# - skośność ,
+# - oraz dominantę.
+# Zwizualizuj wektor za pomocą histogramu oraz wykresu pudełkowego (użyj kolorów, ustaw tytuły osi, wykresu).
+# Jak mają się do siebie średnia, mediana i dominanta?
+# Wygeneruj ponownie losowy wektor (korzystając z tej samej komendy) i uruchom ponownie napisane komendy. 
+# Czy są wyraźne różnice?
+
+
+#
+# --------------------------------------------------------
+# tu wpisz swój kod: 
+x<- rpois(1000,6)
+średnia2<-round(mean(x),2) #średnia
+cat("Średnia:",średnia2)
+range(x)[2]-range(x)[1] #rozstęp
+var(x) #wariancja
+quantile(x) #kwartyle
+IQR(x) #rozstęp międzykwartylowy
+moments::kurtosis(x) #kurtoza
+moments::skewness(x) #skośność
+dominanta2<-as.numeric(names(sort(-table(x)))[1])
+cat("Dominanta:",dominanta2)
+mediana2<-median(x)
+cat("Mediana:",mediana2)
+hist(x, main = "Rozkład Poissona", xlab = "Wartości", ylab = "Liczebność", col = "blue",border = "white")
+boxplot(x, main= "Rozkład Poissona", col = "green", border = "darkgreen",ylab="Wartości")
+# Jak mają się do siebie średnia, mediana i dominanta?
+cat("Mediana:",mediana2,"Średnia:",średnia2,"oraz Dominanta:",dominanta2,"Przyjmują wartości bardzo do siebie zbliżone.","\n","Średnia mniejsza od mediany i dominanty wskazuje na to ,że jest więcej obserwacji mniejszych od wartości 6.")
+y<-rpois(1000,6)
+srednia1<-round(mean(y),2) #średnia
+cat("Średnia",srednia1)
+range(y)[2]-range(x)[1] #rozstęp
+var(y) #wariancja
+quantile(y) #kwartyle
+IQR(y) #rozstęp międzykwartylowy
+moments::kurtosis(y) #kurtoza
+moments::skewness(y) #skośność
+dominanta1<-as.numeric(names(sort(-table(y)))[1])
+cat("Dominanta",dominanta1)
+mediana1<-median(y)
+cat("Mediana",mediana1)
+par(mfrow = c(1, 2))
+?hist
+hist(y, main = "Rozkład Poissona", xlab = "Wartości", ylab = "Liczebność", col = "blue",border = "white",breaks = 10)
+hist(x, main = "Rozkład Poissona", xlab = "Wartości", ylab = "Liczebność", col = "blue",border = "white",breaks = 10)
+boxplot(y, main= "Rozkład Poissona", col = "green", border = "darkgreen",ylab="Wartości")
+boxplot(x, main= "Rozkład Poissona", col = "green", border = "darkgreen",ylab="Wartości")
+par(mfrow=c(1,1))
+# Czy są wyraźne różnice?
+cat("Różnice między dwoma różnymi wektorami z rozkładu Poissona","\n","różnią się od siebie w małym stopniu,","\n","a wartości średnich",średnia2,",",srednia1,"\n","median",mediana2,",",mediana1,"\n","oraz dominant",dominanta2,",",dominanta1,"\n","są do siebie zbliżone")
+
+
+
+
